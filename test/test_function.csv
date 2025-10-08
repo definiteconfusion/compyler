@@ -1,0 +1,50 @@
+4           0 RESUME                   0
+
+  5           2 LOAD_CONST               1 ('Jake')
+              4 STORE_FAST               0 (name)
+
+  6           6 LOAD_CONST               2 (18)
+              8 STORE_FAST               1 (age)
+
+  8          10 LOAD_CONST               3 ('sage green')
+
+  9          12 LOAD_CONST               4 (21)
+
+  7          14 LOAD_CONST               5 (('favorite color', "car's age"))
+             16 BUILD_CONST_KEY_MAP      2
+             18 STORE_FAST               2 (attrs)
+
+ 11          20 BUILD_LIST               0
+             22 LOAD_CONST               6 (('Callie', 'Mae', 'Aiobh', 'Thalia'))
+             24 LIST_EXTEND              1
+             26 STORE_FAST               3 (pets)
+
+ 18          28 LOAD_FAST                3 (pets)
+             30 GET_ITER
+        >>   32 FOR_ITER                13 (to 62)
+             36 STORE_FAST               4 (pet)
+
+ 19          38 LOAD_GLOBAL              1 (NULL + print)
+             48 LOAD_FAST                4 (pet)
+             50 CALL                     1
+             58 POP_TOP
+             60 JUMP_BACKWARD           15 (to 32)
+
+ 18     >>   62 END_FOR
+
+ 21          64 LOAD_GLOBAL              3 (NULL + range)
+             74 LOAD_CONST               7 (4)
+             76 CALL                     1
+             84 GET_ITER
+        >>   86 FOR_ITER                13 (to 116)
+             90 STORE_FAST               5 (k)
+
+ 22          92 LOAD_GLOBAL              1 (NULL + print)
+            102 LOAD_FAST                5 (k)
+            104 CALL                     1
+            112 POP_TOP
+            114 JUMP_BACKWARD           15 (to 86)
+
+ 21     >>  116 END_FOR
+
+ 24         118 RETURN_CONST             8 (1)
