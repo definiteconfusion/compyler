@@ -15,7 +15,9 @@ def test_function():
     ]
     
     for pet in pets:
-        print(pet)
+        k = 4
+        x = k + age
+        print(x)
     
     for k in range(4):
         print(k)
