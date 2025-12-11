@@ -7,7 +7,10 @@ let pets = ["Callie", "Mae", "Aiobh", "Thalia"];
 for pet in pets.iter() {
 let k = 4;
 let x = k + age;
+println!("{}", pet);
+println!("{}", x);
 }
-for k in 4.iter() {
+for lmk in 0..4 {
+println!("{}", lmk);
 }
 }

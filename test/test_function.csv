@@ -1,49 +1,57 @@
-6           0 RESUME                   0
+  3           0 RESUME                   0
 
-  7           2 LOAD_CONST               1 ('Jake')
+  4           2 LOAD_CONST               1 ('Jake')
               4 STORE_FAST               0 (name)
 
-  8           6 LOAD_CONST               2 (18)
+  5           6 LOAD_CONST               2 (18)
               8 STORE_FAST               1 (age)
 
- 10          10 LOAD_CONST               2 (18)
+  7          10 LOAD_CONST               2 (18)
 
- 11          12 LOAD_CONST               3 (21)
+  8          12 LOAD_CONST               3 (21)
 
-  9          14 LOAD_CONST               4 (('favorite color', 'cars age'))
+  6          14 LOAD_CONST               4 (('favorite color', 'cars age'))
              16 BUILD_CONST_KEY_MAP      2
              18 STORE_FAST               2 (attrs)
 
- 13          20 BUILD_LIST               0
+ 10          20 BUILD_LIST               0
              22 LOAD_CONST               5 (('Callie', 'Mae', 'Aiobh', 'Thalia'))
              24 LIST_EXTEND              1
              26 STORE_FAST               3 (pets)
 
- 20          28 LOAD_FAST                3 (pets)
+ 17          28 LOAD_FAST                3 (pets)
              30 GET_ITER
-        >>   32 FOR_ITER                15 (to 66)
+        >>   32 FOR_ITER                20 (to 76)
              36 STORE_FAST               4 (pet)
 
+ 18          38 LOAD_CONST               6 (4)
+             40 STORE_FAST               5 (k)
 
- 22          60 LOAD_CONST               6 (4)
-             62 STORE_FAST               5 (k)
-             64 JUMP_BACKWARD           17 (to 32)
+ 19          42 LOAD_FAST                5 (k)
+             44 LOAD_FAST                1 (age)
+             46 BINARY_OP                0 (+)
+             50 STORE_FAST               6 (x)
 
- 20     >>   66 END_FOR
+ 20          52 LOAD_GLOBAL              1 (NULL + print)
+             62 LOAD_FAST                4 (pet)
+             64 CALL                     1
+             72 POP_TOP
+             74 JUMP_BACKWARD           22 (to 32)
 
- 24          68 LOAD_GLOBAL              3 (NULL + range)
-             78 LOAD_CONST               6 (4)
-             80 CALL                     1
-             88 GET_ITER
-        >>   90 FOR_ITER                13 (to 120)
-             94 STORE_FAST               5 (k)
+ 17     >>   76 END_FOR
 
- 25          96 LOAD_GLOBAL              1 (NULL + print)
-            106 LOAD_FAST                5 (k)
-            108 CALL                     1
-            116 POP_TOP
-            118 JUMP_BACKWARD           15 (to 90)
+ 22          78 LOAD_GLOBAL              3 (NULL + range)
+             88 LOAD_CONST               6 (4)
+             90 CALL                     1
+             98 GET_ITER
+        >>  100 FOR_ITER                13 (to 130)
+            104 STORE_FAST               7 (lmk)
 
- 24     >>  120 END_FOR
+ 23         106 LOAD_GLOBAL              1 (NULL + print)
+            116 LOAD_FAST                7 (lmk)
+            118 CALL                     1
+            126 POP_TOP
+            128 JUMP_BACKWARD           15 (to 100)
 
- 27         122 RETURN_CONST             7 (1)
+ 22     >>  130 END_FOR
+            132 RETURN_CONST             0 (None)

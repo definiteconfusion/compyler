@@ -17,11 +17,10 @@ def test_function():
     for pet in pets:
         k = 4
         x = k + age
+        print(pet)
         print(x)
     
-    for k in range(4):
-        print(k)
-    
+    for lmk in range(4):
+        print(lmk)
     return 1
-
 # dis.disassemble(test_function.__code__)

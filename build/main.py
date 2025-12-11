@@ -23,7 +23,8 @@ class Compiler:
             "LIST_EXTEND": "self.list_extend(instruction)",
             "LOAD_GLOBAL": "self.load_global(instruction)",
             "FOR_ITER": "self.for_iter(instruction)",
-            "END_FOR": "self.end_for(instruction)"
+            "END_FOR": "self.end_for(instruction)",
+            "CALL": "self.call(instruction)"
         }
         
         # map to hold variable data types and values
@@ -95,7 +96,7 @@ class Compiler:
                     dataType=None
                 )
             )
-            print()
+            
         
     # Handler for binary operations (`+`, `-`, `*`, `/`, etc)
     def binary_op(self, instruction):
@@ -111,7 +112,7 @@ class Compiler:
                     dataType="NaV"
                 )
             )
-            print()
+            
         elif self.variables[left.name]["dataType"] == "int" and self.variables[right.name]["dataType"] == "int":
             self.mainStack.append(
                 self.Object(
@@ -141,7 +142,7 @@ class Compiler:
                 dataType=None
             )
         )
-        print()
+        
         pass
     
     def for_iter(self, instruction):
@@ -153,7 +154,7 @@ class Compiler:
                 dataType="NaV"
             )
         )
-        print()
+        
         pass
     
     def end_for(self, instruction):
@@ -165,8 +166,31 @@ class Compiler:
                 dataType="NaV"
             )
         )
-        print()
+        
         pass
+    def call(self, instruction):
+        globals = {
+            "print":"_print(self.mainStack)",
+            "range":"_range(self.mainStack)"
+        }
+        def _print(mainStack):
+            self.buildStack.append(
+                self.Object(
+                    name=f'println!("{{}}", ' + f"{mainStack[-1].name}" + ');',
+                    type="GLOBAL",
+                    value="NaV",
+                    dataType="NaV"
+                )
+        )
+        def _range(mainStack):
+            pass
+        for item in reversed(self.mainStack):
+            if item.type == "GLOBAL":
+                self.mainStack.remove(item)  # Remove the GLOBAL from stack
+                if item.name in globals:
+                    exec(globals[item.name])
+                    break
+                    
     
     # Handler for building constant key maps (dictionaries)
     def build_const_key_map(self, instruction):
@@ -214,6 +238,7 @@ class Compiler:
                 "VAR": "self.transform_var(obj)",
                 "LOOPSTART": "self.transform_loop(obj)",
                 "LOOPEND": 'self.transform_loop_end(obj)',
+                "GLOBAL": 'self.transform_global(obj)'
             }
             self.buildMap = buildMap
             self.rsOut = []
@@ -242,11 +267,19 @@ class Compiler:
                 )
             pass
         
+        def transform_global(self, obj):
+            return obj.name
+        
         def transform_loop(self, obj):
             loop_var, loop_iterable = obj.value
-            return (
-                    f"for {loop_var} in {loop_iterable.name}.iter() {{"
-                )
+            if loop_iterable.type == "CONST":
+                return (
+                        f"for {loop_var} in 0..{loop_iterable.name} {{"
+                    )
+            else:
+                return (
+                        f"for {loop_var} in {loop_iterable.name}.iter() {{"
+                    )
         
         def transform_loop_end(self, obj):
             return (
@@ -271,4 +304,3 @@ main.prePrep()
 final = main.FinalPrep(main.buildStack)
 final.prep()
 final.write_to_file(mode="development")
-subprocess.run(["bash", "./test.sh"])
