@@ -1,26 +1,18 @@
 import dis
 
 def test_function():
-    name = "Jake"
-    age = 18
-    attrs = {
-        "favorite color": 18,
-        "cars age": 21
-    }
-    pets = [
-        "Callie",
-        "Mae",
-        "Aiobh",
-        "Thalia"
-    ]
-    
-    for pet in pets:
-        k = 4
-        x = k + age
-        print(pet)
-        print(x)
-    
-    for lmk in range(4):
-        print(lmk)
+    t = 1
+    tx = 1
+    _x = ("test", "words")
+    for k in range(10):
+        t = tx
+        tx = t + tx
+        print(tx)
     return 1
+# def test_function():
+#     x = 2
+#     y = 2
+#     z = x + y
+#     print(z)
+#     return 1
 # dis.disassemble(test_function.__code__)

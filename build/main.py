@@ -40,6 +40,7 @@ class Compiler:
             self.dataType = dataType
             self.typeChanged = False
             self.isUsed = False
+            self.preInit = False
             pass
         
     # Handler Functions
@@ -93,7 +94,7 @@ class Compiler:
                     name=None, # type: ignore
                     type="LOOPSTART",
                     value=(instruction.argval, self.mainStack.pop()), # type: ignore, # type: ignore
-                    dataType=None
+                    dataType=str(type(instruction.argval).__name__)
                 )
             )
             
@@ -114,6 +115,15 @@ class Compiler:
             )
             
         elif self.variables[left.name]["dataType"] == "int" and self.variables[right.name]["dataType"] == "int":
+            self.mainStack.append(
+                self.Object(
+                    name=f"{str(left.name)} {instruction.argrepr} {str(right.name)}",
+                    type="CONST",
+                    value=f"{str(left.value)} {instruction.argrepr} {str(right.value)}",
+                    dataType="NaV"
+                )
+            )
+        elif self.variables[left.name]["type"] == "VAR" and self.variables[right.name]["type"] == "VAR":
             self.mainStack.append(
                 self.Object(
                     name=f"{str(left.name)} {instruction.argrepr} {str(right.name)}",
@@ -176,7 +186,7 @@ class Compiler:
         def _print(mainStack):
             self.buildStack.append(
                 self.Object(
-                    name=f'println!("{{}}", ' + f"{mainStack[-1].name}" + ');',
+                    name=f'println!("{{:?}}", ' + f"{mainStack[-1].name}" + ');',
                     type="GLOBAL",
                     value="NaV",
                     dataType="NaV"
@@ -246,26 +256,33 @@ class Compiler:
             self.optionalImportsMap = {
                 "HashMap": "use std::collections::HashMap;"
             }
+            self.preInitVars = []
             pass
 
         # Handler to transform variable objects into Rust code
         def transform_var(self, obj):
+            is_new_var = obj.name not in self.preInitVars
+            
+            if is_new_var:
+                self.preInitVars.append(obj.name)
+            
+            # Handle dict type
             if obj.value.dataType == "dict":
-                self.optionalImports.append(
-                    self.optionalImportsMap["HashMap"]
-                )
-                return (
-                    f"let {obj.name} = HashMap::from({obj.value.name});"
-                )
-            elif obj.value.dataType != "str":
-                return (
-                    f"let {obj.name} = {obj.value.name};"
-                )
+                self.optionalImports.append(self.optionalImportsMap["HashMap"])
+                value = f"HashMap::from({obj.value.name})"
+            # Handle tuple type
+            elif obj.value.dataType == "tuple":
+                value = str(obj.value.name).replace("'", '"')
+            # Handle string type
+            elif obj.value.dataType == "str":
+                value = f'"{obj.value.name}"'
+            # Handle all other types
             else:
-                return (
-                    f'let {obj.name} = "{obj.value.name}";'
-                )
-            pass
+                value = obj.value.name
+            
+            # Add 'let mut' prefix only for new variables
+            prefix = "let mut " if is_new_var else ""
+            return f"{prefix}{obj.name} = {value};"
         
         def transform_global(self, obj):
             return obj.name
