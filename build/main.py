@@ -24,16 +24,19 @@ class Compiler:
             "LOAD_GLOBAL": "self.load_global(instruction)",
             "FOR_ITER": "self.for_iter(instruction)",
             "END_FOR": "self.end_for(instruction)",
-            "CALL": "self.call(instruction)"
+            "CALL": "self.call(instruction)",
+            "POP_JUMP_IF_FALSE": "self.pop_jump_if_false(instruction)",
+            "COMPARE_OP": "self.compare_operation(instruction)"
         }
         
         # map to hold variable data types and values
         self.variables = {}
+        self.jumpOffset = None
         pass
     
     # Object Class to hold rust translation stack objects
     class Object:
-        def __init__(self, dataType, name="NAN", type:str="NAT", value="NAV") -> None:
+        def __init__(self, dataType, name="NAN", type:str="NAT", value="NAV", byteAddress="NaA") -> None:
             self.type = type
             self.name = name
             self.value = value
@@ -41,6 +44,7 @@ class Compiler:
             self.typeChanged = False
             self.isUsed = False
             self.preInit = False
+            self.byteAddress = None
             pass
         
     # Handler Functions
@@ -62,7 +66,8 @@ class Compiler:
                 name=instruction.argval,
                 type="VAR",
                 value="NaV",
-                dataType=None
+                dataType=None,
+                byteAddress=instruction.offset
             )
         )
     
@@ -178,19 +183,56 @@ class Compiler:
         )
         
         pass
+
+    def pop_jump_if_false(self, instruction):
+        self.jumpOffset = instruction.argval
+        self.buildStack.append(
+            self.Object(
+                name="NaV",
+                type="BOOLSTART",
+                value=self.mainStack.pop(),
+                dataType="NaV",
+                byteAddress=instruction.argval
+            )
+        )
+        pass
+    
+    def compare_operation(self, instruction):
+        right = self.mainStack.pop()
+        left = self.mainStack.pop()
+        self.mainStack.append(
+            self.Object(
+                name=f"{str(left.name)} {instruction.argrepr} {str(right.name)}",
+                type="CONST",
+                value=f"{str(left.value)} {instruction.argrepr} {str(right.value)}",
+                dataType="NaV"
+            )
+        )
+        pass
+    
     def call(self, instruction):
         globals = {
             "print":"_print(self.mainStack)",
             "range":"_range(self.mainStack)"
         }
         def _print(mainStack):
+            if mainStack[-1].dataType != "str":
+                tX = self.Object(
+                        name=f'println!("{{:?}}", ' + f"{mainStack[-1].name}" + ');',
+                        type="GLOBAL",
+                        value="NaV",
+                        dataType="NaV"
+                    )
+            else:
+                tX = self.Object(
+                        name=f'println!("{{}}", ' + f'"{mainStack[-1].name}"' + ');',
+                        type="GLOBAL",
+                        value="NaV",
+                        dataType="NaV"
+                    )
+            
             self.buildStack.append(
-                self.Object(
-                    name=f'println!("{{:?}}", ' + f"{mainStack[-1].name}" + ');',
-                    type="GLOBAL",
-                    value="NaV",
-                    dataType="NaV"
-                )
+                    tX
         )
         def _range(mainStack):
             pass
@@ -236,7 +278,18 @@ class Compiler:
     def prePrep(self):
         for instruction in self.INSTRUCTS:
             if instruction.opname in self.callMap:
-                exec(self.callMap[instruction.opname])
+                    if self.jumpOffset is not None:
+                        if instruction.offset >= self.jumpOffset: # type: ignore
+                            self.buildStack.append(
+                                self.Object(
+                                    name="}",
+                                    type="LOOPEND",
+                                    value="NaV",
+                                    dataType="NaV"
+                                )
+                            )
+                            self.jumpOffset = None
+                    exec(self.callMap[instruction.opname])
         pass
                 
     # Final Prep Class to transform stack objects into Rust code
@@ -248,7 +301,8 @@ class Compiler:
                 "VAR": "self.transform_var(obj)",
                 "LOOPSTART": "self.transform_loop(obj)",
                 "LOOPEND": 'self.transform_loop_end(obj)',
-                "GLOBAL": 'self.transform_global(obj)'
+                "GLOBAL": 'self.transform_global(obj)',
+                "BOOLSTART": 'self.transform_bool_start(obj)',
             }
             self.buildMap = buildMap
             self.rsOut = []
@@ -258,6 +312,9 @@ class Compiler:
             }
             self.preInitVars = []
             pass
+
+        def transform_bool_start(self, obj):
+            return f"if {obj.value.name} {{"
 
         # Handler to transform variable objects into Rust code
         def transform_var(self, obj):

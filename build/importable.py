@@ -1,13 +1,11 @@
 import dis
 
 def test_function():
-    t = 1
-    tx = 1
-    _x = ("test", "words")
-    for k in range(10):
-        t = tx
-        tx = t + tx
-        print(tx)
+    t = 2
+    if t == 1:
+        print("Hello, World!")
+    print("Goodbye, World!")
+    print(1 == 1)
     return 1
 # def test_function():
 #     x = 2
