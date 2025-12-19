@@ -1,8 +1,5 @@
 fn main() {
-let mut t = 2;
-if t == 1 {
-println!("{}", "Hello, World!");
+for k in 0..10 {
+println!("{:?}", k == 2);
 }
-println!("{}", "Goodbye, World!");
-println!("{:?}", 1 == 1);
 }

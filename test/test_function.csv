@@ -1,28 +1,21 @@
-  3           0 RESUME                   0
+ 3           0 RESUME                   0
 
-  4           2 LOAD_CONST               1 (1)
-              4 STORE_FAST               0 (t)
+  4           2 LOAD_GLOBAL              1 (NULL + range)
+             12 LOAD_CONST               1 (10)
+             14 CALL                     1
+             22 GET_ITER
+        >>   24 FOR_ITER                19 (to 66)
+             28 STORE_FAST               0 (k)
 
-  5           6 LOAD_FAST                0 (t)
-              8 LOAD_CONST               1 (1)
-             10 COMPARE_OP              40 (==)
-             14 POP_JUMP_IF_FALSE       11 (to 38)
+  5          30 LOAD_GLOBAL              3 (NULL + print)
+             40 LOAD_FAST                0 (k)
+             42 LOAD_CONST               2 (2)
+             44 BINARY_OP                6 (%)
+             48 LOAD_CONST               3 (0)
+             50 COMPARE_OP              40 (==)
+             54 CALL                     1
+             62 POP_TOP
+             64 JUMP_BACKWARD           21 (to 24)
 
-  6          16 LOAD_GLOBAL              1 (NULL + print)
-             26 LOAD_CONST               2 ('Hello, World!')
-             28 CALL                     1
-             36 POP_TOP
-
-  7     >>   38 LOAD_GLOBAL              1 (NULL + print)
-             48 LOAD_CONST               3 ('Goodbye, World!')
-             50 CALL                     1
-             58 POP_TOP
-
-  8          60 LOAD_GLOBAL              1 (NULL + print)
-             70 LOAD_CONST               1 (1)
-             72 LOAD_CONST               1 (1)
-             74 COMPARE_OP              40 (==)
-             78 CALL                     1
-             86 POP_TOP
-
-  9          88 RETURN_CONST             1 (1)
+  4     >>   66 END_FOR
+             68 RETURN_CONST             0 (None)

@@ -1,12 +1,8 @@
 import dis
 
 def test_function():
-    t = 2
-    if t == 1:
-        print("Hello, World!")
-    print("Goodbye, World!")
-    print(1 == 1)
-    return 1
+    for k in range(10):
+        print(k%2==0)
 # def test_function():
 #     x = 2
 #     y = 2

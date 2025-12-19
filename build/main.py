@@ -93,6 +93,11 @@ class Compiler:
                 )
             )
         else:
+            self.variables[instruction.argval] = {
+                "type": "VAR",
+                "value": self.mainStack[-1],
+                "dataType": self.mainStack[-1].dataType
+            }
             self.mainStack.pop()
             self.buildStack.append(
                 self.Object(
@@ -118,6 +123,7 @@ class Compiler:
                     dataType="NaV"
                 )
             )
+            print()
             
         elif self.variables[left.name]["dataType"] == "int" and self.variables[right.name]["dataType"] == "int":
             self.mainStack.append(
