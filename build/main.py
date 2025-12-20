@@ -111,48 +111,47 @@ class Compiler:
         
     # Handler for binary operations (`+`, `-`, `*`, `/`, etc)
     def binary_op(self, instruction):
-        right = self.mainStack.pop()
-        left = self.mainStack.pop()
-        if self.variables[left.name]["dataType"] == "str" and self.variables[right.name]["dataType"] == "str":
-            'format!("{}{}", nam, age);'
-            self.mainStack.append(
-                self.Object(
-                    name=f'format!("{{}}{{}}", {str(left.name)}, {str(right.name)})',
-                    type="CONST",
-                    value=f'format!("{{}}{{}}", {str(left.name)}, {str(right.name)})',
-                    dataType="NaV"
+        if instruction.argrepr:
+            isA = False
+            if instruction.argrepr == "+":
+                isA = True
+            right = self.mainStack.pop()
+            left = self.mainStack.pop()
+            if right.name or left.name in self.variables:
+                if right.name in self.variables:
+                    for key, value in right.__dict__.items():
+                        if value == None:
+                            right.__dict__[key] = left.__dict__[key]
+                else:
+                    for key, value in left.__dict__.items():
+                        if value == None:
+                            left.__dict__[key] = right.__dict__[key]
+            if left.dataType != right.dataType:
+                raise TypeError(f"Expression types not consistent -> {left.dataType} | {right.dataType}")
+            if left.dataType == "str":
+                left.name = f'"{left.name}"' if left.value != "NaV" else left.name
+                right.name = f'"{right.name}"' if right.value != "NaV" else right.name
+                if isA:
+                    self.mainStack.append(
+                        self.Object(
+                            name=f'format!("{{}}{{}}", {str(left.name)}, {str(right.name)})',
+                            type="CONST",
+                            value=f'format!("{{}}{{}}", {str(left.name)}, {str(right.name)})',
+                            dataType="NaV"
+                        )
+                    )
+                else:
+                    raise TypeError("Cannot perform bollean operations on objects of type `str`")
+            else:
+                self.mainStack.append(
+                    self.Object(
+                        name=f"{str(left.name)} {instruction.argrepr} {str(right.name)}",
+                        type="CONST",
+                        value=f"{str(left.value)} {instruction.argrepr} {str(right.value)}",
+                        dataType="NaV"
+                    )
                 )
-            )
-            print()
-            
-        elif self.variables[left.name]["dataType"] == "int" and self.variables[right.name]["dataType"] == "int":
-            self.mainStack.append(
-                self.Object(
-                    name=f"{str(left.name)} {instruction.argrepr} {str(right.name)}",
-                    type="CONST",
-                    value=f"{str(left.value)} {instruction.argrepr} {str(right.value)}",
-                    dataType="NaV"
-                )
-            )
-        elif self.variables[left.name]["type"] == "VAR" and self.variables[right.name]["type"] == "VAR":
-            self.mainStack.append(
-                self.Object(
-                    name=f"{str(left.name)} {instruction.argrepr} {str(right.name)}",
-                    type="CONST",
-                    value=f"{str(left.value)} {instruction.argrepr} {str(right.value)}",
-                    dataType="NaV"
-                )
-            )
-        else:
-            self.mainStack.append(
-                self.Object(
-                    name=f'format!("{{}}{{}}", {str(left.name)}, {str(right.name)})',
-                    type="CONST",
-                    value=f'format!("{{}}{{}}", {str(left.name)}, {str(right.name)})',
-                    dataType="NaV"
-                )
-            )
-        pass    
+        pass
     
     def load_global(self, instruction):
         self.mainStack.append(
