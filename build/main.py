@@ -26,6 +26,7 @@ class Compiler:
             "END_FOR": "self.end_for(instruction)",
             "CALL": "self.call(instruction)",
             "POP_JUMP_IF_FALSE": "self.pop_jump_if_false(instruction)",
+            "POP_JUMP_IF_TRUE": "self.pop_jump_if_false(instruction)",
             "COMPARE_OP": "self.compare_operation(instruction)"
         }
         

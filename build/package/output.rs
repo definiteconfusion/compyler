@@ -1,5 +1,7 @@
 fn main() {
-for k in 0..10 {
-println!("{:?}", k % 2 == 0);
-}
+let mut cnt = 1;
+if cnt < 5 {
+println!("{:?}", cnt);
+cnt = cnt += 1;
+if cnt < 5 {
 }

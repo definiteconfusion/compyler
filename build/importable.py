@@ -1,8 +1,10 @@
 import dis
 
 def test_function():
-    for k in range(10):
-        print(k%2==0)
+    cnt = 1
+    while cnt < 5:
+        print(cnt)
+        cnt += 1
 # def test_function():
 #     x = 2
 #     y = 2
