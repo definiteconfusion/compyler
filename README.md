@@ -1,6 +1,6 @@
 #
 
-<img style="width: 30vw" src="./compyer-type-logo-3x.png">
+<img style="width: 40vw" src="./compyer-type-logo-3x.png">
 
 ## Overview
 
