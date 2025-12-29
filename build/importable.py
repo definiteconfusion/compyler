@@ -2,9 +2,8 @@ import dis
 
 def test_function():
     cnt = 1
-    while cnt < 5:
-        print(cnt)
-        cnt += 1
+    # cnt = 2
+    print(cnt)
 # def test_function():
 #     x = 2
 #     y = 2

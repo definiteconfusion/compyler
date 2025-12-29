@@ -46,6 +46,7 @@ class Compiler:
             self.isUsed = False
             self.preInit = False
             self.byteAddress = None
+            self.reqMut = False
             pass
         
     # Handler Functions
@@ -80,6 +81,10 @@ class Compiler:
     
     def store_fast(self, instruction):
         if self.mainStack[-1].type != "LOOPSTART":
+            if instruction.argval in self.variables:
+                for index, value in enumerate(self.buildStack):
+                    if value.name == instruction.argval:
+                        self.buildStack[index].reqMut = True
             self.variables[instruction.argval] = {
                 "type": "VAR",
                 "value": self.mainStack[-1],
@@ -344,7 +349,14 @@ class Compiler:
                 value = obj.value.name
             
             # Add 'let mut' prefix only for new variables
-            prefix = "let mut " if is_new_var else ""
+            # prefix = "let mut " if is_new_var else ""
+            if is_new_var:
+                if obj.reqMut:
+                    prefix = "let mut "
+                else:
+                    prefix = "let "
+            else:
+                prefix = ""
             return f"{prefix}{obj.name} = {value};"
         
         def transform_global(self, obj):

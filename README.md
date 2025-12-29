@@ -44,4 +44,4 @@ Transpiler to functionally / logically convert Python to Rust. Still in early de
   - `range()`
   - `print()`
 
-- Variables (currently all variables are initiated as `mut`, this will change later, I'm just lazy and don't wanna write a watcher at the moment.)
+- Variables (mutability is assigned automatically is required)
