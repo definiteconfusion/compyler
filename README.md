@@ -39,9 +39,18 @@ Transpiler to functionally / logically convert Python to Rust. Still in early de
   - `//`
   - `%`
 
-- Builtin Functions
+- Global Functions
 
   - `range()`
+  - `append()`
   - `print()`
 
-- Variables (mutability is assigned automatically is required)
+- Variables (mutability is assigned automatically if required, requirement is detected automatically upon value reassignment)
+
+
+
+
+
+
+
+

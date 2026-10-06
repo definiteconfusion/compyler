@@ -1,6 +1,5 @@
 import dis
 from importable import test_function    
-import subprocess
 
 class Compiler:
     
@@ -22,17 +21,21 @@ class Compiler:
             "BUILD_CONST_KEY_MAP": "self.build_const_key_map(instruction)",
             "LIST_EXTEND": "self.list_extend(instruction)",
             "LOAD_GLOBAL": "self.load_global(instruction)",
+            "LOAD_ATTR": "self.load_global(instruction)",
             "FOR_ITER": "self.for_iter(instruction)",
             "END_FOR": "self.end_for(instruction)",
             "CALL": "self.call(instruction)",
             "POP_JUMP_IF_FALSE": "self.pop_jump_if_false(instruction)",
-            "POP_JUMP_IF_TRUE": "self.pop_jump_if_false(instruction)",
-            "COMPARE_OP": "self.compare_operation(instruction)"
+            "POP_JUMP_IF_TRUE": "self.pop_jump_if_true(instruction)",
+            "COMPARE_OP": "self.compare_operation(instruction)",
+            "BUILD_LIST": "self.build_list(instruction)",
+            # "POP_TOP": "self.end_for(instruction)"
         }
         
         # map to hold variable data types and values
         self.variables = {}
         self.jumpOffset = None
+        self.reqClosure = 0
         pass
     
     # Object Class to hold rust translation stack objects
@@ -47,7 +50,12 @@ class Compiler:
             self.preInit = False
             self.byteAddress = None
             self.reqMut = False
+            self.originByteAddress = byteAddress
             pass
+        def __repr__(self) -> str:
+            attributes = ", ".join(f"{k}={v!r}" for k, v in self.__dict__.items())
+            return f"{self.__class__.__name__}({attributes})"
+
         
     # Handler Functions
     def load_const(self, instruction) -> None:
@@ -95,7 +103,8 @@ class Compiler:
                     name=instruction.argval,
                     type="VAR",
                     value=self.mainStack.pop(),
-                    dataType=None
+                    dataType=type(instruction.argval).__name__,
+                    byteAddress=instruction.offset
                 )
             )
         else:
@@ -110,7 +119,8 @@ class Compiler:
                     name=None, # type: ignore
                     type="LOOPSTART",
                     value=(instruction.argval, self.mainStack.pop()), # type: ignore, # type: ignore
-                    dataType=str(type(instruction.argval).__name__)
+                    dataType=str(type(instruction.argval).__name__),
+                    byteAddress=instruction.offset
                 )
             )
             
@@ -184,12 +194,25 @@ class Compiler:
         pass
     
     def end_for(self, instruction):
+        if self.reqClosure>0:
+            for k in range(self.reqClosure):
+                self.buildStack.append(
+                            self.Object(
+                                name="}",
+                                type="LOOPEND",
+                                value="NaV",
+                                dataType="NaV",
+                                byteAddress=instruction.offset
+                            )
+                        )
+            self.reqClosure=0
         self.buildStack.append(
             self.Object(
                 name="}",
                 type="LOOPEND",
                 value="NaV",
-                dataType="NaV"
+                dataType="NaV",
+                byteAddress=instruction.offset
             )
         )
         
@@ -197,6 +220,18 @@ class Compiler:
 
     def pop_jump_if_false(self, instruction):
         self.jumpOffset = instruction.argval
+        self.buildStack.append(
+            self.Object(
+                name="NaV",
+                type="BOOLSTART",
+                value=self.mainStack.pop(),
+                dataType="NaV",
+                byteAddress=instruction.argval
+            )
+        )
+        pass
+    def pop_jump_if_true(self, instruction):
+        self.reqClosure +=1
         self.buildStack.append(
             self.Object(
                 name="NaV",
@@ -224,7 +259,8 @@ class Compiler:
     def call(self, instruction):
         globals = {
             "print":"_print(self.mainStack)",
-            "range":"_range(self.mainStack)"
+            "range":"_range(self.mainStack)",
+            "append":"_append(self.mainStack)"
         }
         def _print(mainStack):
             if mainStack[-1].dataType != "str":
@@ -232,14 +268,17 @@ class Compiler:
                         name=f'println!("{{:?}}", ' + f"{mainStack[-1].name}" + ');',
                         type="GLOBAL",
                         value="NaV",
-                        dataType="NaV"
+                        dataType="NaV",
+                        byteAddress=mainStack[-1].originByteAddress
                     )
             else:
                 tX = self.Object(
                         name=f'println!("{{}}", ' + f'"{mainStack[-1].name}"' + ');',
                         type="GLOBAL",
                         value="NaV",
-                        dataType="NaV"
+                        dataType="NaV",
+                        byteAddress=mainStack[-1].originByteAddress
+                        
                     )
             
             self.buildStack.append(
@@ -247,6 +286,28 @@ class Compiler:
         )
         def _range(mainStack):
             pass
+        def _append(mainStack):
+            value_to_add = mainStack.pop()
+            list_obj = mainStack.pop()
+            for index, value in enumerate(self.buildStack):
+                if value.name == list_obj.name:
+                    self.buildStack[index].reqMut = True
+            if value_to_add.type == "VAR":
+                tX = self.Object(
+                        name=f'{list_obj.name}.push({value_to_add.name});',
+                        type="GLOBAL",
+                        value="NaV",
+                        dataType="NaV",
+                        byteAddress=value_to_add.originByteAddress
+                    )
+            else:
+                # add datatype check logic
+                pass
+            self.buildStack.append(
+                tX
+        )
+        # for item in self.mainStack:
+        #     print(item)
         for item in reversed(self.mainStack):
             if item.type == "GLOBAL":
                 self.mainStack.remove(item)  # Remove the GLOBAL from stack
@@ -254,7 +315,6 @@ class Compiler:
                     exec(globals[item.name])
                     break
                     
-    
     # Handler for building constant key maps (dictionaries)
     def build_const_key_map(self, instruction):
         num_values = instruction.argval
@@ -283,6 +343,21 @@ class Compiler:
                 dataType="list"
             )
         )
+    def build_list(self, instruction):
+        num_values = instruction.argval
+        vals = []
+        for i in range(num_values):
+            value = self.mainStack.pop().name
+            vals.append(value)
+        vals.reverse()
+        self.mainStack.append(
+            self.Object(
+                name=str(vals).replace("'", '"'),
+                type="CONST",
+                value=str(vals),
+                dataType="list"
+            )
+        )
     
     
     # Main Prep Function to transform the instructions into stack objects    
@@ -296,7 +371,8 @@ class Compiler:
                                     name="}",
                                     type="LOOPEND",
                                     value="NaV",
-                                    dataType="NaV"
+                                    dataType="NaV",
+                                    byteAddress=instruction.offset # type: ignore
                                 )
                             )
                             self.jumpOffset = None
@@ -325,7 +401,7 @@ class Compiler:
             pass
 
         def transform_bool_start(self, obj):
-            return f"if {obj.value.name} {{"
+            return f"/*{obj.originByteAddress}*/\nif {obj.value.name} {{"
 
         # Handler to transform variable objects into Rust code
         def transform_var(self, obj):
@@ -345,6 +421,8 @@ class Compiler:
             elif obj.value.dataType == "str":
                 value = f'"{obj.value.name}"'
             # Handle all other types
+            elif obj.value.dataType == "list":
+                value = f"vec!{obj.value.name}"
             else:
                 value = obj.value.name
             
@@ -357,20 +435,23 @@ class Compiler:
                     prefix = "let "
             else:
                 prefix = ""
-            return f"{prefix}{obj.name} = {value};"
+            if type(value) == str:
+                if "+=" in value or "-=" in value or "*=" in value or "/=" in value:
+                    return f"/*{obj.originByteAddress}*/\n{value};"
+            return f"/*{obj.originByteAddress}*/\n{prefix}{obj.name} = {value};"
         
         def transform_global(self, obj):
-            return obj.name
+            return f"/*{obj.originByteAddress}*/\n{obj.name}"
         
         def transform_loop(self, obj):
             loop_var, loop_iterable = obj.value
-            if loop_iterable.type == "CONST":
+            if loop_iterable.type != "CONST":
                 return (
-                        f"for {loop_var} in 0..{loop_iterable.name} {{"
+                        f"/*{obj.originByteAddress}*/\nfor {loop_var} in 0..{loop_iterable.name} {{"
                     )
             else:
                 return (
-                        f"for {loop_var} in {loop_iterable.name}.iter() {{"
+                        f"/*{obj.originByteAddress}*/\nfor {loop_var} in {loop_iterable.name}.iter() {{"
                     )
         
         def transform_loop_end(self, obj):
@@ -389,10 +470,11 @@ class Compiler:
         def write_to_file(self, filename="./build/package/output.rs", mode="development"):
             with open(filename, "w") as f:
                 for line in self.rsOut:
-                    f.write(line + "\n") if mode == "development" else f.write(line)
+                    f.write(line + "\n") if mode == "development" else f.write(line.replace("\n", ""))
 
 main = Compiler(test_function)
 main.prePrep()
 final = main.FinalPrep(main.buildStack)
 final.prep()
 final.write_to_file(mode="development")
+# final.write_to_file(mode="production")
