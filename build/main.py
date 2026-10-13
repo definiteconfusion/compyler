@@ -71,12 +71,15 @@ class Compiler:
     
     # Handler for loading variables onto the stack
     def load_fast(self, instruction):
+        ttx = None
+        if instruction.argval in self.variables:
+            ttx = self.variables[instruction.argval]["dataType"]
         self.mainStack.append(
             self.Object(
                 name=instruction.argval,
                 type="VAR",
                 value="NaV",
-                dataType=None,
+                dataType=ttx,
                 byteAddress=instruction.offset
             )
         )
@@ -102,8 +105,8 @@ class Compiler:
                 self.Object(
                     name=instruction.argval,
                     type="VAR",
+                    dataType=self.mainStack[-1].dataType,
                     value=self.mainStack.pop(),
-                    dataType=type(instruction.argval).__name__,
                     byteAddress=instruction.offset
                 )
             )
@@ -398,10 +401,14 @@ class Compiler:
                 "HashMap": "use std::collections::HashMap;"
             }
             self.preInitVars = []
+            self.include_trace_address = False
             pass
 
         def transform_bool_start(self, obj):
-            return f"/*{obj.originByteAddress}*/\nif {obj.value.name} {{"
+            if self.include_trace_address:
+                return f"/*{obj.originByteAddress}*/\nif {obj.value.name} {{"
+            else:
+                return f"if {obj.value.name} {{"
 
         # Handler to transform variable objects into Rust code
         def transform_var(self, obj):
@@ -437,22 +444,41 @@ class Compiler:
                 prefix = ""
             if type(value) == str:
                 if "+=" in value or "-=" in value or "*=" in value or "/=" in value:
-                    return f"/*{obj.originByteAddress}*/\n{value};"
-            return f"/*{obj.originByteAddress}*/\n{prefix}{obj.name} = {value};"
+                    if self.include_trace_address:
+                        return f"/*{obj.originByteAddress}*/\n{value};"
+                    else:
+                        return f"{value};"
+            if self.include_trace_address:
+                return f"/*{obj.originByteAddress}*/\n{prefix}{obj.name} = {value};"
+            else:
+                return f"{prefix}{obj.name} = {value};"
         
         def transform_global(self, obj):
-            return f"/*{obj.originByteAddress}*/\n{obj.name}"
+            if self.include_trace_address:
+                return f"/*{obj.originByteAddress}*/\n{obj.name}"
+            else:
+                return f"{obj.name}"
         
         def transform_loop(self, obj):
             loop_var, loop_iterable = obj.value
-            if loop_iterable.type != "CONST":
-                return (
-                        f"/*{obj.originByteAddress}*/\nfor {loop_var} in 0..{loop_iterable.name} {{"
-                    )
+            if loop_iterable.type == "CONST" or loop_iterable.dataType == "int":
+                if self.include_trace_address:
+                    return (
+                            f"/*{obj.originByteAddress}*/\nfor {loop_var} in 0..{loop_iterable.name} {{"
+                        )
+                else:
+                    return (
+                            f"for {loop_var} in 0..{loop_iterable.name} {{"
+                        )
             else:
-                return (
-                        f"/*{obj.originByteAddress}*/\nfor {loop_var} in {loop_iterable.name}.iter() {{"
-                    )
+                if self.include_trace_address:
+                    return (
+                            f"/*{obj.originByteAddress}*/\nfor {loop_var} in {loop_iterable.name}.iter() {{"
+                        )
+                else:
+                    return (
+                            f"for {loop_var} in {loop_iterable.name}.iter() {{"
+                        )
         
         def transform_loop_end(self, obj):
             return (
@@ -475,6 +501,7 @@ class Compiler:
 main = Compiler(test_function)
 main.prePrep()
 final = main.FinalPrep(main.buildStack)
+final.include_trace_address=True
 final.prep()
 final.write_to_file(mode="development")
 # final.write_to_file(mode="production")

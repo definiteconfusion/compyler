@@ -1,67 +1,63 @@
   3           0 RESUME                   0
 
-  4           2 LOAD_CONST               1 (15)
-              4 STORE_FAST               0 (k)
+  4           2 BUILD_LIST               0
+              4 STORE_FAST               0 (evenInts)
 
-  6           6 LOAD_CONST               2 (2)
+  6           6 LOAD_CONST               1 (10)
+              8 STORE_FAST               1 (rng)
 
-  7           8 LOAD_CONST               3 (4)
+  7          10 LOAD_CONST               2 (0)
+             12 STORE_FAST               2 (exs)
 
-  5          10 BUILD_LIST               2
-             12 STORE_FAST               1 (evenInts)
-
-  9          14 LOAD_GLOBAL              1 (NULL + range)
-             24 LOAD_FAST                0 (k)
+  8          14 LOAD_GLOBAL              1 (NULL + range)
+             24 LOAD_FAST                1 (rng)
              26 CALL                     1
              34 GET_ITER
-        >>   36 FOR_ITER                78 (to 196)
-             40 STORE_FAST               2 (i)
+        >>   36 FOR_ITER                28 (to 96)
+             40 STORE_FAST               3 (i)
 
- 10          42 LOAD_FAST                2 (i)
-             44 LOAD_CONST               2 (2)
+  9          42 LOAD_FAST                3 (i)
+             44 LOAD_CONST               3 (2)
              46 BINARY_OP                6 (%)
-             50 LOAD_CONST               4 (0)
+             50 LOAD_CONST               2 (0)
              52 COMPARE_OP              40 (==)
-             56 POP_JUMP_IF_FALSE       17 (to 92)
+             56 POP_JUMP_IF_TRUE         1 (to 60)
+             58 JUMP_BACKWARD           12 (to 36)
 
- 11          58 LOAD_FAST                1 (evenInts)
-             60 LOAD_ATTR                3 (NULL|self + append)
-             80 LOAD_FAST                2 (i)
-             82 CALL                     1
-             90 POP_TOP
+ 10     >>   60 LOAD_FAST                0 (evenInts)
+             62 LOAD_ATTR                3 (NULL|self + append)
+             82 LOAD_FAST                3 (i)
+             84 CALL                     1
+             92 POP_TOP
+             94 JUMP_BACKWARD           30 (to 36)
 
- 12     >>   92 LOAD_FAST                2 (i)
-             94 LOAD_CONST               5 (5)
-             96 BINARY_OP                6 (%)
-            100 LOAD_CONST               4 (0)
-            102 COMPARE_OP              40 (==)
-            106 POP_JUMP_IF_FALSE       17 (to 142)
+  8     >>   96 END_FOR
 
- 13         108 LOAD_FAST                1 (evenInts)
-            110 LOAD_ATTR                3 (NULL|self + append)
-            130 LOAD_FAST                2 (i)
-            132 CALL                     1
-            140 POP_TOP
+ 11          98 LOAD_FAST                0 (evenInts)
+            100 GET_ITER
+        >>  102 FOR_ITER                19 (to 144)
+            106 STORE_FAST               4 (k)
 
- 14     >>  142 LOAD_FAST                2 (i)
-            144 LOAD_CONST               6 (10)
-            146 BINARY_OP                6 (%)
-            150 LOAD_CONST               4 (0)
-            152 COMPARE_OP              40 (==)
-            156 POP_JUMP_IF_TRUE         1 (to 160)
-            158 JUMP_BACKWARD           62 (to 36)
+ 12         108 LOAD_FAST                4 (k)
+            110 LOAD_CONST               4 (5)
+            112 BINARY_OP                0 (+)
+            116 LOAD_CONST               3 (2)
+            118 BINARY_OP               11 (/)
+            122 LOAD_CONST               5 (1)
+            124 COMPARE_OP              68 (>)
+            128 POP_JUMP_IF_TRUE         1 (to 132)
+            130 JUMP_BACKWARD           15 (to 102)
 
- 15     >>  160 LOAD_FAST                1 (evenInts)
-            162 LOAD_ATTR                3 (NULL|self + append)
-            182 LOAD_FAST                2 (i)
-            184 CALL                     1
-            192 POP_TOP
-            194 JUMP_BACKWARD           80 (to 36)
+ 13     >>  132 LOAD_FAST                2 (exs)
+            134 LOAD_CONST               5 (1)
+            136 BINARY_OP               13 (+=)
+            140 STORE_FAST               2 (exs)
+            142 JUMP_BACKWARD           21 (to 102)
 
-  9     >>  196 END_FOR
+ 11     >>  144 END_FOR
 
- 16         198 LOAD_GLOBAL              5 (NULL + print)
-            208 LOAD_FAST                1 (evenInts)
-            210 CALL                     1
-            218 POP_TOP
-            220 RETURN_CONST             0 (None)
+ 14         146 LOAD_GLOBAL              5 (NULL + print)
+            156 LOAD_FAST                2 (exs)
+            158 CALL                     1
+            166 POP_TOP
+            168 RETURN_CONST             0 (None)
