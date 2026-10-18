@@ -145,8 +145,8 @@ class Compiler:
                     for key, value in left.__dict__.items():
                         if value == None:
                             left.__dict__[key] = right.__dict__[key]
-            if left.dataType != right.dataType:
-                raise TypeError(f"Expression types not consistent -> {left.dataType} | {right.dataType}")
+            # if left.dataType != right.dataType:
+            #     raise TypeError(f"Expression types not consistent -> {left.dataType} | {right.dataType}")
             if left.dataType == "str":
                 left.name = f'"{left.name}"' if left.value != "NaV" else left.name
                 right.name = f'"{right.name}"' if right.value != "NaV" else right.name
@@ -162,14 +162,24 @@ class Compiler:
                 else:
                     raise TypeError("Cannot perform bollean operations on objects of type `str`")
             else:
-                self.mainStack.append(
-                    self.Object(
-                        name=f"{str(left.name)} {instruction.argrepr} {str(right.name)}",
-                        type="CONST",
-                        value=f"{str(left.value)} {instruction.argrepr} {str(right.value)}",
-                        dataType="NaV"
+                if instruction.argrepr == "//":
+                    self.mainStack.append(
+                        self.Object(
+                            name=f"{str(left.name)} / {str(right.name)}",
+                            type="CONST",
+                            value=f"{str(left.value)} {instruction.argrepr} {str(right.value)}",
+                            dataType="NaV"
+                        )
                     )
-                )
+                else:
+                    self.mainStack.append(
+                        self.Object(
+                            name=f"{str(left.name)} {instruction.argrepr} {str(right.name)}",
+                            type="CONST",
+                            value=f"{str(left.value)} {instruction.argrepr} {str(right.value)}",
+                            dataType="NaV"
+                        )
+                    )
         pass
     
     def load_global(self, instruction):
